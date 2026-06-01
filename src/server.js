@@ -25,33 +25,59 @@ function renderPage(text) {
   <style>
     html,
     body {
+      height: 100%;
       margin: 0;
-      min-height: 100%;
     }
 
     body {
-      align-items: center;
       background: #fff;
       color: #000;
-      display: flex;
       font-family: system-ui, sans-serif;
-      justify-content: center;
-      min-height: 100vh;
-      overflow-wrap: anywhere;
-      padding: 4vw;
+      overflow: hidden;
       text-align: center;
     }
 
     main {
-      font-size: clamp(4rem, 20vw, 18rem);
+      align-items: center;
+      box-sizing: border-box;
+      display: flex;
+      font-size: 10px;
       font-weight: 900;
+      height: 100vh;
+      justify-content: center;
       line-height: 0.9;
-      max-width: 100%;
+      overflow-wrap: anywhere;
+      padding: 0;
+      width: 100vw;
     }
   </style>
 </head>
 <body>
-  <main>${safeText}</main>
+  <main id="dekamoji">${safeText}</main>
+  <script>
+    const target = document.getElementById("dekamoji");
+
+    function fitText() {
+      let min = 1;
+      let max = Math.max(window.innerWidth, window.innerHeight) * 2;
+
+      while (max - min > 0.5) {
+        const size = (min + max) / 2;
+        target.style.fontSize = size + "px";
+
+        if (target.scrollWidth <= window.innerWidth && target.scrollHeight <= window.innerHeight) {
+          min = size;
+        } else {
+          max = size;
+        }
+      }
+
+      target.style.fontSize = min + "px";
+    }
+
+    window.addEventListener("resize", fitText);
+    fitText();
+  </script>
 </body>
 </html>`;
 }
