@@ -11,7 +11,7 @@ mise exec -- node src/server.js
 起動後、ブラウザで次のように開きます。
 
 ```text
-http://localhost:3000/ひたすらでかい文字
+http://localhost:3050/ひたすらでかい文字
 ```
 
 `/` の後ろに入れた文字が、そのまま大きく表示されます。

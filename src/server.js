@@ -2,7 +2,7 @@ import http from "node:http";
 
 import { getDisplayText } from "./displayText.js";
 
-const port = Number.parseInt(process.env.PORT ?? "3000", 10);
+const port = Number.parseInt(process.env.PORT ?? "3050", 10);
 
 function escapeHtml(value) {
   return value
