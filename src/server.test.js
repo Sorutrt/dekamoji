@@ -11,6 +11,12 @@ test("表示領域を画面いっぱいに使う", () => {
 
 test("文字サイズを表示領域に合わせて最大化する", () => {
   assert.match(source, /function fitText\(\)/);
-  assert.match(source, /scrollWidth <= window\.innerWidth/);
-  assert.match(source, /scrollHeight <= window\.innerHeight/);
+  assert.match(source, /scrollWidth <= target\.clientWidth/);
+  assert.match(source, /scrollHeight <= target\.clientHeight/);
+});
+
+test("スマホの動的ビューポートに合わせて表示領域を決める", () => {
+  assert.match(source, /viewport-fit=cover/);
+  assert.match(source, /100dvh/);
+  assert.match(source, /window\.visualViewport/);
 });
