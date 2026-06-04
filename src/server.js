@@ -43,13 +43,16 @@ function renderPage(text) {
 
     body {
       background: #fff;
-      color: #000;
       font-family: system-ui, sans-serif;
       overflow: hidden;
       text-align: center;
     }
 
     main {
+      background: linear-gradient(to right,#e60000,#f39800,#fff100,#009944,#0068b7,#1d2088,#920783);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+
       align-items: center;
       box-sizing: border-box;
       display: flex;
