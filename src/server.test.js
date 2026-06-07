@@ -20,3 +20,9 @@ test("スマホの動的ビューポートに合わせて表示領域を決め�
   assert.match(source, /100dvh/);
   assert.match(source, /window\.visualViewport/);
 });
+
+test("ユーザー環境に合わせてダークモード表示に切り替える", () => {
+  assert.match(source, /color-scheme: light dark/);
+  assert.match(source, /prefers-color-scheme: dark/);
+  assert.match(source, /background: #000/);
+});

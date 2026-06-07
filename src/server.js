@@ -24,6 +24,7 @@ function renderPage(text) {
   <title>${safeText}</title>
   <style>
     :root {
+      color-scheme: light dark;
       --viewport-height: 100vh;
       --viewport-width: 100vw;
     }
@@ -64,6 +65,12 @@ function renderPage(text) {
       overflow-wrap: anywhere;
       padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
       width: var(--viewport-width);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: #000;
+      }
     }
   </style>
 </head>
