@@ -26,3 +26,9 @@ test("ユーザー環境に合わせてダークモード表示に切り替え�
   assert.match(source, /prefers-color-scheme: dark/);
   assert.match(source, /background: #000/);
 });
+
+test("colorクエリがあれば文字色として使う", () => {
+  assert.match(source, /getDisplayColor\(url\)/);
+  assert.match(source, /renderPage\(text, \{ textColor \}\)/);
+  assert.match(source, /color: \$\{textColor\};/);
+});

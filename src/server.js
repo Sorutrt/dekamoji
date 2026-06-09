@@ -1,5 +1,6 @@
 import http from "node:http";
 
+import { getDisplayColor } from "./displayColor.js";
 import { getDisplayText } from "./displayText.js";
 
 const port = Number.parseInt(process.env.PORT ?? "3050", 10);
@@ -13,8 +14,19 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
-function renderPage(text) {
+function getMainTextStyle(textColor) {
+  if (textColor !== null) {
+    return `      color: ${textColor};`;
+  }
+
+  return `      background: linear-gradient(to right,#e60000,#f39800,#fff100,#009944,#0068b7,#1d2088,#920783);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;`;
+}
+
+function renderPage(text, { textColor = null } = {}) {
   const safeText = escapeHtml(text);
+  const mainTextStyle = getMainTextStyle(textColor);
 
   return `<!doctype html>
 <html lang="ja">
@@ -50,9 +62,7 @@ function renderPage(text) {
     }
 
     main {
-      background: linear-gradient(to right,#e60000,#f39800,#fff100,#009944,#0068b7,#1d2088,#920783);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+${mainTextStyle}
 
       align-items: center;
       box-sizing: border-box;
@@ -121,9 +131,10 @@ function renderPage(text) {
 const server = http.createServer((request, response) => {
   const url = new URL(request.url ?? "/", `http://${request.headers.host ?? "localhost"}`);
   const text = getDisplayText(url);
+  const textColor = getDisplayColor(url);
 
   response.writeHead(200, { "content-type": "text/html; charset=utf-8" });
-  response.end(renderPage(text));
+  response.end(renderPage(text, { textColor }));
 });
 
 server.listen(port, () => {
