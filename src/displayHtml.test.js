@@ -33,6 +33,17 @@ test("URLパスで/になったLaTeXコマンドは数式内だけバックス�
   assert.match(html, /<annotation encoding="application\/x-tex">\\frac\{1\}\{2\}<\/annotation>/);
 });
 
+test("URLパスで//になったLaTeXの改行は数式内だけ\\\\として扱う", () => {
+  const html = renderDisplayHtml("$/begin{bmatrix}a && b // c && d/end{bmatrix}$");
+
+  assert.match(
+    html,
+    /<annotation encoding="application\/x-tex">\\begin\{bmatrix\}a &amp;&amp; b \\\\ c &amp;&amp; d\\end\{bmatrix\}<\/annotation>/,
+  );
+  assert.match(html, /<mtable/);
+  assert.match(html, /<mtr>.*<mi>a<\/mi>.*<mi>b<\/mi>.*<\/mtr><mtr>.*<mi>c<\/mi>.*<mi>d<\/mi>.*<\/mtr>/);
+});
+
 test("URLパスで/になった\\(...\\)と\\[...\\]の区切りも数式として扱う", () => {
   const inlineHtml = renderDisplayHtml("/(x^2/)");
   const displayHtml = renderDisplayHtml("/[x^2/]");

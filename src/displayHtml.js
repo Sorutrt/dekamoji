@@ -41,7 +41,9 @@ function renderMath(math, displayMode) {
 }
 
 function normalizeMathBackslashes(math) {
-  return math.replaceAll(/\/([A-Za-z]+)/g, "\\$1");
+  return math
+    .replaceAll("//", "\\\\")
+    .replaceAll(/\/([A-Za-z]+)/g, "\\$1");
 }
 
 export function renderDisplayHtml(text) {
