@@ -93,10 +93,6 @@ ${mainTextStyle}
       border-bottom-color: transparent;
     }
 
-    main[data-rainbow="true"] .katex svg path {
-      fill: var(--dekamoji-rainbow-fill, currentColor);
-    }
-
     @media (prefers-color-scheme: dark) {
       body {
         background: #000;
@@ -183,15 +179,19 @@ ${mainTextStyle}
         }
 
         const gradient = ensureRainbowGradient(svg, index);
-        const scale = viewBox.width / rect.width;
-        const x1 = viewBox.x + (mainRect.left - rect.left) * scale;
-        const x2 = viewBox.x + (mainRect.right - rect.left) * scale;
+        const pixelPerSvgUnit = Math.max(rect.width / viewBox.width, rect.height / viewBox.height);
+        const svgUnitPerPixel = 1 / pixelPerSvgUnit;
+        const x1 = viewBox.x + (mainRect.left - rect.left) * svgUnitPerPixel;
+        const x2 = viewBox.x + (mainRect.right - rect.left) * svgUnitPerPixel;
 
         gradient.setAttribute("x1", x1);
         gradient.setAttribute("x2", x2);
         gradient.setAttribute("y1", "0");
         gradient.setAttribute("y2", "0");
-        svg.style.setProperty("--dekamoji-rainbow-fill", "url(#" + gradient.id + ")");
+
+        for (const path of svg.querySelectorAll("path")) {
+          path.setAttribute("fill", "url(#" + gradient.id + ")");
+        }
       });
     }
 

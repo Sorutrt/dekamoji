@@ -53,5 +53,8 @@ test("虹色表示ではKaTeXの線とSVGにもグラデーションを使う", 
   assert.match(source, /function syncRainbowLines\(mainRect\)/);
   assert.match(source, /gradient\.setAttribute\("gradientUnits", "userSpaceOnUse"\)/);
   assert.match(source, /function syncRainbowSvgs\(mainRect\)/);
+  assert.match(source, /Math\.max\(rect\.width \/ viewBox\.width, rect\.height \/ viewBox\.height\)/);
+  assert.match(source, /path\.setAttribute\("fill", "url\(#" \+ gradient\.id \+ "\)"\)/);
   assert.match(source, /syncKatexRainbow\(\)/);
+  assert.doesNotMatch(source, /--dekamoji-rainbow-fill/);
 });
