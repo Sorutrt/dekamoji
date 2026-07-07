@@ -27,6 +27,25 @@ test("\\(...\\)をインライン数式、\\[...\\]をディスプレイ数式�
   assert.match(displayHtml, /class="katex-display"/);
 });
 
+test("URLパスで/になったLaTeXコマンドは数式内だけバックスラッシュとして扱う", () => {
+  const html = renderDisplayHtml("$/frac{1}{2}$");
+
+  assert.match(html, /<annotation encoding="application\/x-tex">\\frac\{1\}\{2\}<\/annotation>/);
+});
+
+test("URLパスで/になった\\(...\\)と\\[...\\]の区切りも数式として扱う", () => {
+  const inlineHtml = renderDisplayHtml("/(x^2/)");
+  const displayHtml = renderDisplayHtml("/[x^2/]");
+
+  assert.match(inlineHtml, /class="katex"/);
+  assert.doesNotMatch(inlineHtml, /class="katex-display"/);
+  assert.match(displayHtml, /class="katex-display"/);
+});
+
+test("数式外のスラッシュは通常テキストとして残す", () => {
+  assert.equal(renderDisplayHtml("でかい/文字"), "でかい/文字");
+});
+
 test("閉じていない区切りは通常テキストとして扱う", () => {
   assert.equal(renderDisplayHtml("$x^2"), "$x^2");
 });

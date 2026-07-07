@@ -3,7 +3,9 @@ import katex from "katex";
 const MATH_DELIMITERS = [
   { open: "$$", close: "$$", displayMode: true },
   { open: "\\[", close: "\\]", displayMode: true },
+  { open: "/[", close: "/]", displayMode: true },
   { open: "\\(", close: "\\)", displayMode: false },
+  { open: "/(", close: "/)", displayMode: false },
   { open: "$", close: "$", displayMode: false },
 ];
 
@@ -32,10 +34,14 @@ function findNextDelimiter(text, startIndex) {
 }
 
 function renderMath(math, displayMode) {
-  return katex.renderToString(math, {
+  return katex.renderToString(normalizeMathBackslashes(math), {
     displayMode,
     throwOnError: false,
   });
+}
+
+function normalizeMathBackslashes(math) {
+  return math.replaceAll(/\/([A-Za-z]+)/g, "\\$1");
 }
 
 export function renderDisplayHtml(text) {
