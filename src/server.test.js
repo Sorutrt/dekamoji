@@ -32,3 +32,15 @@ test("colorクエリがあれば文字色として使う", () => {
   assert.match(source, /renderPage\(text, \{ textColor \}\)/);
   assert.match(source, /color: \$\{textColor\};/);
 });
+
+test("KaTeXの数式HTMLとCSSを使う", () => {
+  assert.match(source, /renderDisplayHtml\(text\)/);
+  assert.match(source, /<link rel="stylesheet" href="\/katex\/katex\.min\.css">/);
+  assert.match(source, /<main id="dekamoji">\$\{displayHtml\}<\/main>/);
+});
+
+test("KaTeXのCSSとフォントをローカル配信する", () => {
+  assert.match(source, /node_modules\/katex\/dist\/katex\.min\.css/);
+  assert.match(source, /\/katex\/fonts\//);
+  assert.match(source, /serveKatexAsset\(url, response\)/);
+});

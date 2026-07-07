@@ -1,18 +1,19 @@
 import http from "node:http";
+import { createReadStream } from "node:fs";
 
 import { getDisplayColor } from "./displayColor.js";
+import { escapeHtml, renderDisplayHtml } from "./displayHtml.js";
 import { getDisplayText } from "./displayText.js";
 
 const port = Number.parseInt(process.env.PORT ?? "3050", 10);
 
-function escapeHtml(value) {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-}
+const KATEX_CSS_URL = new URL("../node_modules/katex/dist/katex.min.css", import.meta.url);
+const KATEX_FONT_PATTERN = /^\/katex\/fonts\/[A-Za-z0-9_-]+\.(?:woff2?|ttf)$/;
+const KATEX_FONT_CONTENT_TYPES = {
+  ".ttf": "font/ttf",
+  ".woff": "font/woff",
+  ".woff2": "font/woff2",
+};
 
 function getMainTextStyle(textColor) {
   if (textColor !== null) {
@@ -26,6 +27,7 @@ function getMainTextStyle(textColor) {
 
 function renderPage(text, { textColor = null } = {}) {
   const safeText = escapeHtml(text);
+  const displayHtml = renderDisplayHtml(text);
   const mainTextStyle = getMainTextStyle(textColor);
 
   return `<!doctype html>
@@ -34,6 +36,7 @@ function renderPage(text, { textColor = null } = {}) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>${safeText}</title>
+  <link rel="stylesheet" href="/katex/katex.min.css">
   <style>
     :root {
       color-scheme: light dark;
@@ -85,7 +88,7 @@ ${mainTextStyle}
   </style>
 </head>
 <body>
-  <main id="dekamoji">${safeText}</main>
+  <main id="dekamoji">${displayHtml}</main>
   <script>
     const target = document.getElementById("dekamoji");
 
@@ -128,8 +131,61 @@ ${mainTextStyle}
 </html>`;
 }
 
+function streamFile(response, fileUrl, contentType) {
+  const stream = createReadStream(fileUrl);
+
+  stream.on("error", () => {
+    if (!response.headersSent) {
+      response.writeHead(404, { "content-type": "text/plain; charset=utf-8" });
+    }
+
+    response.end("Not Found");
+  });
+
+  stream.on("open", () => {
+    response.writeHead(200, { "content-type": contentType });
+    stream.pipe(response);
+  });
+}
+
+function getFontContentType(pathname) {
+  const extension = pathname.endsWith(".woff2")
+    ? ".woff2"
+    : pathname.slice(pathname.lastIndexOf("."));
+
+  return KATEX_FONT_CONTENT_TYPES[extension] ?? "application/octet-stream";
+}
+
+function serveKatexAsset(url, response) {
+  if (url.pathname === "/katex/katex.min.css") {
+    streamFile(response, KATEX_CSS_URL, "text/css; charset=utf-8");
+    return true;
+  }
+
+  if (KATEX_FONT_PATTERN.test(url.pathname)) {
+    const fontName = url.pathname.slice("/katex/fonts/".length);
+    const fontUrl = new URL(`../node_modules/katex/dist/fonts/${fontName}`, import.meta.url);
+
+    streamFile(response, fontUrl, getFontContentType(url.pathname));
+    return true;
+  }
+
+  if (url.pathname.startsWith("/katex/")) {
+    response.writeHead(404, { "content-type": "text/plain; charset=utf-8" });
+    response.end("Not Found");
+    return true;
+  }
+
+  return false;
+}
+
 const server = http.createServer((request, response) => {
   const url = new URL(request.url ?? "/", `http://${request.headers.host ?? "localhost"}`);
+
+  if (serveKatexAsset(url, response)) {
+    return;
+  }
+
   const text = getDisplayText(url);
   const textColor = getDisplayColor(url);
 

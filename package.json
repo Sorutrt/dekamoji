@@ -4,6 +4,9 @@
   "type": "module",
   "scripts": {
     "start": "node src/server.js",
-    "test": "node --test src"
+    "test": "node --test src/*.test.js"
+  },
+  "dependencies": {
+    "katex": "^0.17.0"
   }
 }
