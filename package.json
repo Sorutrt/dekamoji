@@ -3,7 +3,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "preinstall": "node scripts/ensure-mise-node.js",
+    "prestart": "node scripts/ensure-mise-node.js",
     "start": "node src/server.js",
+    "pretest": "node scripts/ensure-mise-node.js",
     "test": "node --test src/*.test.js"
   },
   "dependencies": {

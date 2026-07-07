@@ -1,3 +1,5 @@
+import "../scripts/ensure-mise-node.js";
+
 import http from "node:http";
 import { createReadStream } from "node:fs";
 
