@@ -22,7 +22,7 @@ function getMainTextStyle(textColor) {
     return `      color: ${textColor};`;
   }
 
-  return `      background: linear-gradient(to right,#e60000,#f39800,#fff100,#009944,#0068b7,#1d2088,#920783);
+  return `      background: var(--dekamoji-rainbow);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;`;
 }
@@ -42,6 +42,7 @@ function renderPage(text, { textColor = null } = {}) {
   <style>
     :root {
       color-scheme: light dark;
+      --dekamoji-rainbow: linear-gradient(to right,#e60000,#f39800,#fff100,#009944,#0068b7,#1d2088,#920783);
       --viewport-height: 100vh;
       --viewport-width: 100vw;
     }
@@ -82,6 +83,20 @@ ${mainTextStyle}
       width: var(--viewport-width);
     }
 
+    main[data-rainbow="true"] .katex .frac-line,
+    main[data-rainbow="true"] .katex .overline-line,
+    main[data-rainbow="true"] .katex .underline-line {
+      background-image: var(--dekamoji-rainbow);
+      background-position: var(--dekamoji-rainbow-x, 0) 0;
+      background-repeat: no-repeat;
+      background-size: var(--dekamoji-rainbow-width, var(--viewport-width)) 100%;
+      border-bottom-color: transparent;
+    }
+
+    main[data-rainbow="true"] .katex svg path {
+      fill: var(--dekamoji-rainbow-fill, currentColor);
+    }
+
     @media (prefers-color-scheme: dark) {
       body {
         background: #000;
@@ -90,9 +105,19 @@ ${mainTextStyle}
   </style>
 </head>
 <body>
-  <main id="dekamoji">${displayHtml}</main>
+  <main id="dekamoji" data-rainbow="${textColor === null}">${displayHtml}</main>
   <script>
     const target = document.getElementById("dekamoji");
+    const rainbowStops = [
+      ["0%", "#e60000"],
+      ["16.67%", "#f39800"],
+      ["33.33%", "#fff100"],
+      ["50%", "#009944"],
+      ["66.67%", "#0068b7"],
+      ["83.33%", "#1d2088"],
+      ["100%", "#920783"],
+    ];
+    const svgNamespace = "http://www.w3.org/2000/svg";
 
     function syncViewportSize() {
       const viewport = window.visualViewport;
@@ -101,6 +126,84 @@ ${mainTextStyle}
 
       document.documentElement.style.setProperty("--viewport-width", width + "px");
       document.documentElement.style.setProperty("--viewport-height", height + "px");
+    }
+
+    function createSvgElement(name) {
+      return document.createElementNS(svgNamespace, name);
+    }
+
+    function ensureRainbowGradient(svg, index) {
+      let defs = svg.querySelector(":scope > defs[data-dekamoji-rainbow]");
+      let gradient = defs?.querySelector("linearGradient");
+
+      if (gradient) {
+        return gradient;
+      }
+
+      defs = createSvgElement("defs");
+      defs.dataset.dekamojiRainbow = "true";
+      gradient = createSvgElement("linearGradient");
+      gradient.id = "dekamoji-rainbow-svg-" + index;
+      gradient.setAttribute("gradientUnits", "userSpaceOnUse");
+
+      for (const [offset, color] of rainbowStops) {
+        const stop = createSvgElement("stop");
+
+        stop.setAttribute("offset", offset);
+        stop.setAttribute("stop-color", color);
+        gradient.append(stop);
+      }
+
+      defs.append(gradient);
+      svg.prepend(defs);
+
+      return gradient;
+    }
+
+    function syncRainbowLines(mainRect) {
+      const lines = target.querySelectorAll(".katex .frac-line, .katex .overline-line, .katex .underline-line");
+
+      for (const line of lines) {
+        const rect = line.getBoundingClientRect();
+
+        line.style.setProperty("--dekamoji-rainbow-width", mainRect.width + "px");
+        line.style.setProperty("--dekamoji-rainbow-x", mainRect.left - rect.left + "px");
+      }
+    }
+
+    function syncRainbowSvgs(mainRect) {
+      const svgs = target.querySelectorAll(".katex svg");
+
+      svgs.forEach((svg, index) => {
+        const rect = svg.getBoundingClientRect();
+        const viewBox = svg.viewBox.baseVal;
+
+        if (rect.width === 0 || viewBox.width === 0) {
+          return;
+        }
+
+        const gradient = ensureRainbowGradient(svg, index);
+        const scale = viewBox.width / rect.width;
+        const x1 = viewBox.x + (mainRect.left - rect.left) * scale;
+        const x2 = viewBox.x + (mainRect.right - rect.left) * scale;
+
+        gradient.setAttribute("x1", x1);
+        gradient.setAttribute("x2", x2);
+        gradient.setAttribute("y1", "0");
+        gradient.setAttribute("y2", "0");
+        svg.style.setProperty("--dekamoji-rainbow-fill", "url(#" + gradient.id + ")");
+      });
+    }
+
+    function syncKatexRainbow() {
+      if (target.dataset.rainbow !== "true") {
+        return;
+      }
+
+      const mainRect = target.getBoundingClientRect();
+
+      syncRainbowLines(mainRect);
+      syncRainbowSvgs(mainRect);
     }
 
     function fitText() {
@@ -121,11 +224,15 @@ ${mainTextStyle}
       }
 
       target.style.fontSize = min + "px";
+      syncKatexRainbow();
     }
 
     window.addEventListener("resize", fitText);
     if (window.visualViewport) {
       window.visualViewport.addEventListener("resize", fitText);
+    }
+    if (document.fonts) {
+      document.fonts.ready.then(fitText);
     }
     fitText();
   </script>

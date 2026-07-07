@@ -19,6 +19,7 @@ test("スマホの動的ビューポートに合わせて表示領域を決め�
   assert.match(source, /viewport-fit=cover/);
   assert.match(source, /100dvh/);
   assert.match(source, /window\.visualViewport/);
+  assert.match(source, /document\.fonts/);
 });
 
 test("ユーザー環境に合わせてダークモード表示に切り替える", () => {
@@ -36,11 +37,21 @@ test("colorクエリがあれば文字色として使う", () => {
 test("KaTeXの数式HTMLとCSSを使う", () => {
   assert.match(source, /renderDisplayHtml\(text\)/);
   assert.match(source, /<link rel="stylesheet" href="\/katex\/katex\.min\.css">/);
-  assert.match(source, /<main id="dekamoji">\$\{displayHtml\}<\/main>/);
+  assert.match(source, /<main id="dekamoji" data-rainbow="\$\{textColor === null\}">\$\{displayHtml\}<\/main>/);
 });
 
 test("KaTeXのCSSとフォントをローカル配信する", () => {
   assert.match(source, /node_modules\/katex\/dist\/katex\.min\.css/);
   assert.match(source, /\/katex\/fonts\//);
   assert.match(source, /serveKatexAsset\(url, response\)/);
+});
+
+test("虹色表示ではKaTeXの線とSVGにもグラデーションを使う", () => {
+  assert.match(source, /--dekamoji-rainbow: linear-gradient/);
+  assert.match(source, /main\[data-rainbow="true"\] \.katex \.frac-line/);
+  assert.match(source, /background-position: var\(--dekamoji-rainbow-x, 0\) 0/);
+  assert.match(source, /function syncRainbowLines\(mainRect\)/);
+  assert.match(source, /gradient\.setAttribute\("gradientUnits", "userSpaceOnUse"\)/);
+  assert.match(source, /function syncRainbowSvgs\(mainRect\)/);
+  assert.match(source, /syncKatexRainbow\(\)/);
 });
